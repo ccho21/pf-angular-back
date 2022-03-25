@@ -12,19 +12,19 @@ const User = require('../../models/User');
 //  @access     Private
 router.post(
   '/',
-  [auth, [check('text', 'Text is required').not().isEmpty()]],
+  [auth, [check('content', 'Content is required').not().isEmpty()]],
   async (req, res) => {
-    console.log(req.body);
+    console.log('### post body', req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
     try {
       const user = await User.findById(req.user.id).select('-password');
-      console.log(user);
       const newPost = new Post({
-        text: req.body.text,
-        name: user.name,
+        content: req.body.content,
+        firstname: user.firstname,
+        lastname: user.lastname,
         avatar: user.avatar,
         user: req.user.id,
       });
@@ -37,9 +37,8 @@ router.post(
   }
 );
 
-
 //  @route      GET api/posts
-//  @desc       Create all posts
+//  @desc       get all posts
 //  @access     Private
 
 router.get('/', auth, async (req, res) => {
@@ -92,20 +91,16 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-
 //  @route      PUT api/posts/like/:id
 //  @desc       Like a post
 //  @access     Private
 
 router.put('/like/:id', auth, async (req, res) => {
   try {
-
     const post = await Post.findById(req.params.id);
     console.log(post.likes);
     // Check if the post has already been liked
-    if (
-      post.likes.some(like => like.user.toString() === req.user.id)
-    ) {
+    if (post.likes.some((like) => like.user.toString() === req.user.id)) {
       return res.status(400).json({ msg: 'Post already liked' });
     }
 
@@ -124,18 +119,17 @@ router.put('/like/:id', auth, async (req, res) => {
 
 router.put('/unlike/:id', auth, async (req, res) => {
   try {
-
     const post = await Post.findById(req.params.id);
     console.log(post.likes);
     // Check if the post has already been liked
-    if (
-      post.likes.every(like => like.user.toString() !== req.user.id)
-    ) {
+    if (post.likes.every((like) => like.user.toString() !== req.user.id)) {
       return res.status(400).json({ msg: 'Post has not yet been liked' });
     }
 
     // Get remove index
-    const removeIndex = post.likes.map(like => like.user.toString()).indexOf(req.user.id);
+    const removeIndex = post.likes
+      .map((like) => like.user.toString())
+      .indexOf(req.user.id);
 
     post.likes.splice(removeIndex, 1);
 
@@ -152,10 +146,7 @@ router.put('/unlike/:id', auth, async (req, res) => {
 //  @access     Private
 router.post(
   '/comment/:id',
-  [auth, [
-    check('text', 'Text is required')
-      .not()
-      .isEmpty()]],
+  [auth, [check('content', 'Content is required').not().isEmpty()]],
   async (req, res) => {
     console.log(req.body);
     const errors = validationResult(req);
@@ -168,8 +159,9 @@ router.post(
       const post = await Post.findById(req.params.id);
       console.log(user);
       const newComment = new Post({
-        text: req.body.text,
-        name: user.name,
+        content: req.body.content,
+        firstname: user.firstname,
+        lastname: user.lastname,
         avatar: user.avatar,
         user: req.user.id,
       });
@@ -179,7 +171,6 @@ router.post(
       await post.save();
 
       res.json(post.comments);
-
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
@@ -196,7 +187,9 @@ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
     const post = await Post.findById(req.params.id);
 
     // Pull out comment
-    const comment = post.comments.find(comment => comment.id === req.params.comment_id);
+    const comment = post.comments.find(
+      (comment) => comment.id === req.params.comment_id
+    );
 
     // Make sure comment exists
     if (!comment) {
@@ -209,19 +202,18 @@ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
     }
     // Get removeIndex
     const removeIndex = post.likes
-      .map(comment => comment.user.toString())
+      .map((comment) => comment.user.toString())
       .indexOf(req.user.id);
 
     post.comments.splice(removeIndex, 1);
-    
+
     await post.save();
 
     res.json(post.comments);
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
-})
+});
 
 module.exports = router;

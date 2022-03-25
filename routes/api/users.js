@@ -101,14 +101,11 @@ router.put(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { firstname, lastname, phone, country, province, email, password, avatar } = req.body;
+    const { firstname, lastname, email, password, avatar } = req.body;
     // Build profile object;
     const userFields = {};
     if (firstname) userFields.firstname = firstname;
     if (lastname) userFields.lastname = lastname;
-    if (phone) userFields.phone = phone;
-    if (country) userFields.country = country;
-    if (province) userFields.province = province;
     if (password) userFields.password = password;
     if (avatar) userFields.avatar = avatar;
 
