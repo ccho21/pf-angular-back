@@ -4,7 +4,6 @@ const { check, validationResult } = require('express-validator');
 const auth = require('../../middleware/auth');
 
 const Post = require('../../models/Post');
-const Profile = require('../../models/Profile');
 const User = require('../../models/User');
 
 //  @route      POST api/posts
@@ -82,6 +81,25 @@ router.delete('/:id', auth, async (req, res) => {
     await post.remove();
 
     res.json({ msg: 'Post removed' });
+  } catch (err) {
+    console.log(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Post not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+//  @route      GET api/posts/user/:userId
+//  @desc       Get post by User ID
+//  @access     Private
+
+router.get('/user/:id', auth, async (req, res) => {
+  try {
+    console.log("WORKING?", req.params.id );
+    const posts = await Post.find({ user: req.params.id });
+    if (!posts) return res.status(404).json({ msg: 'Post not found' });
+    res.json(posts);
   } catch (err) {
     console.log(err.message);
     if (err.kind === 'ObjectId') {
