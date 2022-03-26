@@ -25,7 +25,7 @@ router.post(
         firstname: user.firstname,
         lastname: user.lastname,
         avatar: user.avatar,
-        user: req.user.id,
+        author: req.user.id,
       });
       const post = await newPost.save();
       res.json(post);
@@ -68,6 +68,24 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
+//  @route      GET api/posts/user/:id
+//  @desc       Get post by User ID
+//  @access     Private
+
+router.get('/user/:id', auth, async (req, res) => {
+  try {
+    const posts = await Post.find({ user: req.params.id }).sort({ date: -1 });
+    if (!posts.length) return res.status(404).json({ msg: 'Post not found' });
+    res.json(posts);
+  } catch (err) {
+    console.log(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Post not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
 //  @route      DELTE api/posts/:id
 //  @desc       DELTE post by ID
 //  @access     Private
@@ -96,7 +114,7 @@ router.delete('/:id', auth, async (req, res) => {
 
 router.get('/user/:id', auth, async (req, res) => {
   try {
-    console.log("WORKING?", req.params.id );
+    console.log('WORKING?', req.params.id);
     const posts = await Post.find({ user: req.params.id });
     if (!posts) return res.status(404).json({ msg: 'Post not found' });
     res.json(posts);

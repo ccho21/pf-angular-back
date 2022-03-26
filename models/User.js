@@ -18,18 +18,6 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  country: {
-    type: String,
-  },
-  phone: {
-    type: String,
-  },
-  province: {
-    type: String,
-  },
-  avatar: {
-    type: String,
-  },
   createdAt: {
     type: Date,
     default: Date.now,
