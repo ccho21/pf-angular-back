@@ -15,6 +15,7 @@ const path = require('path');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 
+const BUCKET_NAME = 'charles-cho-dev';
 // Init Middleware
 app.use(express.json({ extended: false }));
 app.use(fileUpload());
