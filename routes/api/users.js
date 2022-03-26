@@ -8,11 +8,11 @@ const { check, validationResult } = require('express-validator');
 
 const User = require('../../models/User');
 
-//  @route      POST api/users
+//  @route      POST api/users/sign-up
 //  @desc       Register user
 //  @access     Public
 router.post(
-  '/',
+  '/sign-up',
   [
     check('firstname', 'First Name is required').not().isEmpty(),
     check('lastname', 'Last Name is required').not().isEmpty(),
@@ -47,11 +47,9 @@ router.post(
         d: 'mm',
       });
 
-      const username = `${firstname}_${lastname}`;
       user = new User({
         firstname,
         lastname,
-        username,
         email,
         avatar,
         password,
@@ -68,13 +66,16 @@ router.post(
         },
       };
 
+      const userWithNoPassword = JSON.parse(JSON.stringify(user));
+      delete userWithNoPassword.password;
+
       jwt.sign(
         payload,
         config.get('jwtSecret'),
         { expiresIn: 360000 },
         (err, token) => {
           if (err) throw err;
-          res.json({ token });
+          res.json({ token, user: userWithNoPassword });
         }
       );
     } catch (err) {
