@@ -14,16 +14,17 @@ router.post(
   [auth, [check('content', 'Content is required').not().isEmpty()]],
   async (req, res) => {
     console.log('### post body', req.body);
+    console.log('### post body', req.user);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-      const author = await User.findById(req.user.id).select('-password');
+      const user = await User.findById(req.user.id).select('-password');
+      console.log(user);
       const newPost = new Post({
         content: req.body.content,
-        firstname: user.firstname,
-        lastname: user.lastname,
+        username: user.username,
         avatar: user.avatar,
         author: req.user.id,
       });
@@ -193,16 +194,15 @@ router.post(
     try {
       const user = await User.findById(req.user.id).select('-password');
       const post = await Post.findById(req.params.id);
-      console.log(user);
       const newComment = new Post({
         content: req.body.content,
-        firstname: user.firstname,
-        lastname: user.lastname,
+        username: user.username,
         avatar: user.avatar,
         user: req.user.id,
       });
 
       post.comments.unshift(newComment);
+      console.log(post);
 
       await post.save();
 

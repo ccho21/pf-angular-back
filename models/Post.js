@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const PostSchema = new mongoose.Schema({
-  author: {
+  user: {
     type: Schema.Types.ObjectId,
     ref: 'user',
   },
@@ -9,11 +9,7 @@ const PostSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  firstname: {
-    type: String,
-    required: true,
-  },
-  lastname: {
+  username: {
     type: String,
     required: true,
   },
@@ -50,11 +46,7 @@ const PostSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      firstname: {
-        type: String,
-        required: true,
-      },
-      lastname: {
+      username: {
         type: String,
         required: true,
       },
