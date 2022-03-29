@@ -4,6 +4,20 @@ const fs = require('fs');
 const path = require('path');
 const router = express.Router();
 
+const multer = require('multer');
+const upload = multer({ dest: './public/uploads/' });
+
+//  @route      Upload api/upload
+//  @desc       upload a file
+//  @access     public
+router.post('/images', upload.single('avatar'), (req, res) => {
+  console.log('###', req);
+  const files = req.files;
+  // console.log(files);
+
+  res.send('okay');
+});
+
 //  AWS
 aws.config.update({
   region: 'us-east-2',

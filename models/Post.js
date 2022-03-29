@@ -4,7 +4,7 @@ const PostSchema = new mongoose.Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: 'user',
-  }, 
+  },
   content: {
     type: String,
     required: true,
@@ -55,21 +55,19 @@ const PostSchema = new mongoose.Schema({
       },
       createdAt: {
         type: Date,
-        defualt: Date.now,
+        default: Date.now,
       },
       updatedAt: {
         type: Date,
-        defualt: Date.now,
       },
     },
   ],
   createdAt: {
     type: Date,
-    defualt: Date.now,
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    defualt: Date.now,
   },
 });
 

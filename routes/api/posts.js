@@ -13,8 +13,6 @@ router.post(
   '/',
   [auth, [check('content', 'Content is required').not().isEmpty()]],
   async (req, res) => {
-    console.log('### post body', req.body);
-    console.log('### post body', req.user);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
