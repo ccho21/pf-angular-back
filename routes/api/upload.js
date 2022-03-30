@@ -11,9 +11,6 @@ const { uploadFile, getFileStream } = require('../../s3');
 // MULTER CONFIG
 const storage = multer.diskStorage({
   destination: './uploads/images/',
-  // filename: (req, file, cb) => {
-  //   cb(null, file.fieldname + '-' + Date.now());
-  // },
 });
 // MULTER upload configuration
 const upload = multer({
@@ -48,28 +45,30 @@ router.get('/images/:key', (req, res) => {
 //  @route      Upload api/upload/images
 //  @desc       upload a file
 //  @access     public
-router.post('/images', upload.single('asdf'), async (req, res) => {
-  const file = req.file;
-  if (!file) {
+router.post('/images', upload.array('images'), async (req, res) => {
+  // console.log(req.files);
+  if (!req.files) {
     return res.status(500).send({ msg: 'file is not found' });
   }
   try {
-    //TODO:: ADD apply filter
+    //   //TODO:: ADD apply filter
 
-    //TODO:: ADD resize
+    //   //TODO:: ADD resize
+    const results = [];
+    for (let i = 0; i < req.files.length; i++) {
+      const data = await uploadFile(req.files[i]);
+      // add results to return
+      results.push(data.Key);
+      // unlink when the file is uploaded.
+      await unlinkFile(req.files[i].path);
+    }
+    const keyPath = results.map((key) => `/api/upload/images/${key}`);
 
-    const result = await uploadFile(file);
-    await unlinkFile(file.path);
-
-    console.log(result);
-    res.status(200).send({ imagePath: `/images/${result.Key}` });
+    res.status(200).send({ imagePath: keyPath });
   } catch (err) {
     console.log(err);
     return res.status(500).send('Server Error');
   }
-  // else {
-  //
-  // }
 });
 
 module.exports = router;
