@@ -1,8 +1,6 @@
 const express = require('express');
-const aws = require('aws-sdk');
 const connectDB = require('./config/db');
 const app = express();
-
 
 
 // Connect Database
@@ -15,12 +13,13 @@ app.use(express.json());
 
 const path = require('path');
 const cors = require('cors');
-const fileUpload = require('express-fileupload');
+// const fileUpload = require('express-fileupload');
 
-const BUCKET_NAME = 'charles-cho-dev';
 // Init Middleware
-app.use(express.json({ extended: false }));
-app.use(fileUpload());
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.use(cors());
 
 // Define Routes
