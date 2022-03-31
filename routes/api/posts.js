@@ -9,7 +9,7 @@ const User = require('../../models/User');
 //  @route      POST api/posts
 //  @desc       Create a post
 //  @access     Private
-router.post(
+router.put(
   '/',
   [
     auth,
@@ -37,6 +37,39 @@ router.post(
       });
       const post = await newPost.save();
       res.json(post);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  }
+);
+
+//  @route      PUT api/posts/:id
+//  @desc       Update a post
+//  @access     Private
+router.put(
+  '/:id',
+  [
+    auth,
+    [
+      check('content', 'Content is required').not().isEmpty(),
+      check('images', 'Images are required').not().isEmpty(),
+    ],
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const user = await User.findById(req.user.id).select('-password');
+      const post = await Post.findById(req.params.id);
+      post.content = req.body.content;
+      // post.images.unshift(...req.body.images);
+      post.images = req.body.images;
+
+      const updatedPost = await post.save();
+      res.json(updatedPost);
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
@@ -188,11 +221,11 @@ router.put('/unlike/:id', auth, async (req, res) => {
 //  @route      POST api/posts/comment/:id
 //  @desc       Comment on a post
 //  @access     Private
-router.post(
+router.put(
   '/comment/:id',
   [auth, [check('content', 'Content is required').not().isEmpty()]],
   async (req, res) => {
-    console.log(req.body);
+    console.log('### update req comment', req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -201,15 +234,16 @@ router.post(
     try {
       const user = await User.findById(req.user.id).select('-password');
       const post = await Post.findById(req.params.id);
+      console.log(user);
       const newComment = new Post({
         content: req.body.content,
         username: user.username,
-        avatar: user.avatar,
+        thumbnail: user.thumbnail,
         user: req.user.id,
       });
 
       post.comments.unshift(newComment);
-      console.log(post);
+      console.log('### post ??? ', post);
 
       await post.save();
 

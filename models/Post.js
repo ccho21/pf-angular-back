@@ -43,8 +43,9 @@ const PostSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      avatar: {
+      thumbnail: {
         type: String,
+        required: true,
       },
       createdAt: {
         type: Date,
@@ -63,6 +64,5 @@ const PostSchema = new mongoose.Schema({
     type: Date,
   },
 });
-
 
 module.exports = mongoose.model('post', PostSchema);
