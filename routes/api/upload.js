@@ -46,7 +46,6 @@ router.get('/images/:key', (req, res) => {
 //  @desc       upload a file
 //  @access     public
 router.post('/images', upload.array('images'), async (req, res) => {
-  // console.log(req.files);
   if (!req.files) {
     return res.status(500).send({ msg: 'file is not found' });
   }
@@ -63,7 +62,7 @@ router.post('/images', upload.array('images'), async (req, res) => {
       await unlinkFile(req.files[i].path);
     }
     const keyPath = results.map((key) => `/api/upload/images/${key}`);
-
+    console.log('### keypath', keyPath);
     res.status(200).send({ imagePath: keyPath });
   } catch (err) {
     console.log(err);
