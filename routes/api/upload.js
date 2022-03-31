@@ -35,7 +35,7 @@ const upload = multer({
 //  @desc       GET image using key
 //  @access     public
 router.get('/images/:key', (req, res) => {
-  console.log(req.params);
+  // console.log(req.params);
   const key = req.params.key;
   const readStream = getFileStream(key);
 
