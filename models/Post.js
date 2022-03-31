@@ -13,20 +13,13 @@ const PostSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  images: [
-    {
-      filename: {
-        type: String,
-        required: false,
-      },
-      url: {
-        type: String,
-        required: false,
-      },
-    },
-  ],
-  avatar: {
+  thumbnail: {
     type: String,
+    required: true,
+  },
+  images: {
+    type: [String],
+    required: true,
   },
   likes: [
     {
