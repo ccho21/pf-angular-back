@@ -174,13 +174,18 @@ router.get('/user/:id', auth, async (req, res) => {
 
 router.put('/like/:id', auth, async (req, res) => {
   try {
+    const user = await User.findById(req.user.id).select('-password');
     const post = await Post.findById(req.params.id);
     // Check if the post has already been liked
     if (post.likes.some((like) => like.user.toString() === req.user.id)) {
       return res.status(400).json({ msg: 'Post already liked' });
     }
 
-    post.likes.unshift({ user: req.user.id });
+    post.likes.unshift({
+      user: req.user.id,
+      thumbnail: user.thumbnail,
+      username: user.username,
+    });
     await post.save();
     res.json(post.likes);
   } catch (err) {
@@ -306,6 +311,7 @@ router.put('/like/:id/:commentId', auth, async (req, res) => {
     }
 
     // console.log('### user', req.user);
+    const user = await User.findById(req.user.id).select('-password');
     const { comments } = post;
 
     const comment = comments.find(
@@ -318,7 +324,11 @@ router.put('/like/:id/:commentId', auth, async (req, res) => {
 
     comments.forEach((comment) => {
       if (comment._id.toString() === req.params.commentId) {
-        comment.likes.unshift({ user: req.user.id });
+        comment.likes.unshift({
+          user: req.user.id,
+          thumbnail: user.thumbnail,
+          username: user.username,
+        });
       }
     });
 

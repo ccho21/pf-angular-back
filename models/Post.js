@@ -27,6 +27,14 @@ const PostSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'user',
       },
+      username: {
+        type: String,
+        required: true,
+      },
+      thumbnail: {
+        type: String,
+        required: true,
+      },
     },
   ],
   comments: [
@@ -59,6 +67,14 @@ const PostSchema = new mongoose.Schema({
           user: {
             type: Schema.Types.ObjectId,
             ref: 'user',
+          },
+          username: {
+            type: String,
+            required: true,
+          },
+          thumbnail: {
+            type: String,
+            required: true,
           },
         },
       ],
