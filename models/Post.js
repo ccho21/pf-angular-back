@@ -37,6 +37,22 @@ const PostSchema = new mongoose.Schema({
       },
     },
   ],
+  views: [
+    {
+      user: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
+      username: {
+        type: String,
+        required: true,
+      },
+      thumbnail: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
   comments: [
     {
       user: {

@@ -298,7 +298,7 @@ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
 });
 
 //  @route      PUT api/posts/like/:postId/:commentId
-//  @desc       Like a post
+//  @desc       Like a comment
 //  @access     Private
 
 router.put('/like/:id/:commentId', auth, async (req, res) => {
@@ -342,8 +342,8 @@ router.put('/like/:id/:commentId', auth, async (req, res) => {
   }
 });
 
-//  @route      PUT api/posts/unlike/:id
-//  @desc       Unlike a post
+//  @route      PUT api/posts/unlike/:id/:commentId
+//  @desc       Unlike a Comment
 //  @access     Private
 
 router.put('/unlike/:id/:commentId', auth, async (req, res) => {
@@ -378,6 +378,35 @@ router.put('/unlike/:id/:commentId', auth, async (req, res) => {
 
     await post.save();
     res.json(post.comments);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//  @route      PUT api/posts/views/:id/
+//  @desc       Add Views to a Post
+//  @access     Private
+
+router.put('/views/:id', auth, async (req, res) => {
+  try {
+    console.log('came in?');
+    const user = await User.findById(req.user.id).select('-password');
+    const post = await Post.findById(req.params.id);
+    console.log(user);
+    console.log(post);
+    // Check if the post has already been liked
+    if (post.likes.some((like) => like.user.toString() === req.user.id)) {
+      return res.status(400).json({ msg: 'Post already liked' });
+    }
+
+    post.views.unshift({
+      user: req.user.id,
+      thumbnail: user.thumbnail,
+      username: user.username,
+    });
+    await post.save();
+    res.json(post.likes);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
