@@ -54,6 +54,14 @@ const PostSchema = new mongoose.Schema({
       updatedAt: {
         type: Date,
       },
+      likes: [
+        {
+          user: {
+            type: Schema.Types.ObjectId,
+            ref: 'user',
+          },
+        },
+      ],
     },
   ],
   createdAt: {
