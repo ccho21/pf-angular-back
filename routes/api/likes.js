@@ -36,7 +36,7 @@ router.put('/:id', auth, async (req, res) => {
   //  @desc       Unlike a post
   //  @access     Private
   
-  router.delete('/:id', auth, async (req, res) => {
+  router.put('/u/:id', auth, async (req, res) => {
     try {
       const post = await Post.findById(req.params.id);
       console.log(post.likes);
@@ -113,7 +113,7 @@ router.put('/:id/:commentId', auth, async (req, res) => {
   //  @desc       Unlike a Comment
   //  @access     Private
   
-  router.delete('/:id/:commentId', auth, async (req, res) => {
+  router.put('/u/:id/:commentId', auth, async (req, res) => {
     try {
       const post = await Post.findById(req.params.id);
   
