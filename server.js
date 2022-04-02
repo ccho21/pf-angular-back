@@ -2,7 +2,6 @@ const express = require('express');
 const connectDB = require('./config/db');
 const app = express();
 
-
 // Connect Database
 connectDB();
 
@@ -26,6 +25,9 @@ app.use(cors());
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/posts', require('./routes/api/posts'));
+app.use('/api/posts/comments', require('./routes/api/comments'));
+app.use('/api/posts/likes', require('./routes/api/likes'));
+app.use('/api/posts/views', require('./routes/api/views'));
 app.use('/api/upload', require('./routes/api/upload'));
 
 // Serve static assets in production
