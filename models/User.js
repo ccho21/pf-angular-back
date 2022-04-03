@@ -4,10 +4,12 @@ const UserSchema = new mongoose.Schema({
   firstname: {
     type: String,
     required: true,
+    select: false,
   },
   lastname: {
     type: String,
     required: true,
+    select: false,
   },
   username: {
     type: String,
@@ -25,6 +27,7 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false,
   },
   createdAt: {
     type: Date,

@@ -2,11 +2,12 @@ const mongoose = require('mongoose');
 const Populate = require('../util/autopopulate');
 
 const Schema = mongoose.Schema;
-const PostSchema = new mongoose.Schema({
-  user: {
+const CommentSchema = new mongoose.Schema({
+  author: {
     type: Schema.Types.ObjectId,
     ref: 'user',
   },
+  comments: [{ type: Schema.Types.ObjectId, ref: 'comment' }],
   content: {
     type: String,
     required: true,
@@ -14,14 +15,6 @@ const PostSchema = new mongoose.Schema({
   replyTo: {
     type: String,
     required: false,
-  },
-  username: {
-    type: String,
-    required: true,
-  },
-  thumbnail: {
-    type: String,
-    required: true,
   },
   createdAt: {
     type: Date,
@@ -32,4 +25,9 @@ const PostSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('post', PostSchema);
+CommentSchema.pre('findOne', Populate('author'))
+  .pre('find', Populate('author'))
+  .pre('findOne', Populate('comments'))
+  .pre('find', Populate('comments'));
+
+module.exports = mongoose.model('comment', CommentSchema);

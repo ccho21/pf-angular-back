@@ -4,10 +4,11 @@ const { check, validationResult } = require('express-validator');
 const auth = require('../../middleware/auth');
 
 const Post = require('../../models/Post');
+const Comment = require('../../models/Comment');
 const User = require('../../models/User');
 
 //  @route      POST api/posts/comment/:id
-//  @desc       Reply on a Comment
+//  @desc       Create a comment to a post
 //  @access     Private
 router.put(
   '/:id',
@@ -22,18 +23,15 @@ router.put(
     try {
       const user = await User.findById(req.user.id).select('-password');
       const post = await Post.findById(req.params.id);
-      console.log(user);
-      const newComment = new Post({
+      // console.log(user);
+      const comment = new Comment({
         content: req.body.content,
-        username: user.username,
-        thumbnail: user.thumbnail,
-        user: req.user.id,
+        author: req.user.id,
       });
 
-      post.comments.unshift(newComment);
-
+      await comment.save();
+      post.comments.unshift(comment);
       await post.save();
-
       res.json(post.comments);
     } catch (err) {
       console.error(err.message);
