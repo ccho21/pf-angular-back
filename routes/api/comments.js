@@ -42,7 +42,7 @@ router.put(
   }
 );
 
-//  @route      DELTE api/posts/comment/:id/:comment_id
+//  @route      DELTE api/posts/comments/:id/:comment_id
 //  @desc       Delete comment
 //  @access     Private
 
@@ -80,11 +80,11 @@ router.delete('/:id/:comment_id', auth, async (req, res) => {
   }
 });
 
-//  @route      POST api/posts/comment/:id/commentId
+//  @route      POST api/posts/comments/:id/commentId
 //  @desc       Comment on a post
 //  @access     Private
 router.put(
-  '/:id/commentId',
+  '/:id/:commentId',
   [auth, [check('content', 'Content is required').not().isEmpty()]],
   async (req, res) => {
     console.log('### update req comment', req.body);
@@ -98,25 +98,24 @@ router.put(
       const post = await Post.findById(req.params.id);
 
       const { comments } = post;
-      const comment = comments.find(
-        (comment) => comment._id.toString() === req.params.commentId.toString()
-      );
 
-      const newComment = new Post({
+      const subComment = new Post({
+        replyTo: req.body.replyTo,
         content: req.body.content,
         username: user.username,
         thumbnail: user.thumbnail,
         user: req.user.id,
       });
+      console.log('### SUB COMMENT DETAIL ###', subComment);
 
       comments.forEach((comment) => {
         if (comment._id === req.params.commentId) {
-          comment.comments.unshift(newComment);
+          comment.comments.push(subComment);
         }
       });
+      console.log('### SUB COMMENT ###', post.comments);
 
       post.comments = [...comments];
-
       await post.save();
 
       res.json(post.comments);

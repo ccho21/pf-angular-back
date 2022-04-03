@@ -102,6 +102,10 @@ const PostSchema = new mongoose.Schema({
             type: Schema.Types.ObjectId,
             ref: 'user',
           },
+          replyTo: {
+            type: String,
+            required: false,
+          },
           content: {
             type: String,
             required: true,
@@ -149,6 +153,5 @@ const PostSchema = new mongoose.Schema({
     type: Date,
   },
 });
-
 
 module.exports = mongoose.model('post', PostSchema);
