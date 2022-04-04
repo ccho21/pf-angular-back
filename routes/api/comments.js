@@ -30,6 +30,7 @@ router.put(
       });
 
       await comment.save();
+
       post.comments.unshift(comment);
       await post.save();
       res.json(post.comments);

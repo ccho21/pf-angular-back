@@ -4,6 +4,7 @@ const { check, validationResult } = require('express-validator');
 const auth = require('../../middleware/auth');
 
 const User = require('../../models/User');
+const Like = require('../../models/Like');
 const Post = require('../../models/Post');
 const Comment = require('../../models/Comment');
 
@@ -14,7 +15,7 @@ const Comment = require('../../models/Comment');
 router.get('/', auth, async (req, res) => {
   try {
     const posts = await Post.find().sort({ date: -1 });
-    console.log('### posts', posts);
+    // console.log('### posts', posts);
     res.json(posts);
   } catch (err) {
     console.log(err.message);
@@ -156,7 +157,7 @@ router.delete('/:id', auth, async (req, res) => {
 router.get('/user/:id', auth, async (req, res) => {
   try {
     console.log('WORKING?', req.params.id);
-    const posts = await Post.find({ user: req.params.id });
+    const posts = await Post.find({ author: req.params.id });
     if (!posts) return res.status(404).json({ msg: 'Post not found' });
     res.json(posts);
   } catch (err) {
