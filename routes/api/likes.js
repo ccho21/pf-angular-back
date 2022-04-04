@@ -12,22 +12,23 @@ const Comment = require('../../models/Comment');
 //  @desc       Like a post
 //  @access     Private
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:postId', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
-    console.log('### LIKE IN LIKE FUNCTION', post);
+    const post = await Post.findById(req.params.postId);
+    // console.log('### LIKE IN LIKE FUNCTION', post);
 
     // Check if the post has already been liked
-    if (post.likes.some((like) => like.author._id.toString() === req.user.id)) {
+    if (post.likes.some((like) => like.user.toString() === req.user.id)) {
       return res.status(400).json({ msg: 'Post already liked' });
     }
 
     const like = new Like({
+      user: req.user.id,
       author: req.user.id,
+      parentId: req.params.postId,
     });
 
     await like.save();
-    console.log('### AFTER NEW LIKE', like);
 
     post.likes.unshift(like);
     await post.save(like);
@@ -43,18 +44,17 @@ router.put('/:id', auth, async (req, res) => {
 //  @desc       Unlike a post
 //  @access     Private
 
-router.put('/u/:id', auth, async (req, res) => {
+router.put('/u/:postId', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.postId);
 
     const likeId = post.likes.find(
-      (like) => like.author._id.toString() === req.user.id
-    );
+      (like) => like.user.toString() === req.user.id
+    )._id;
+    console.log(likeId);
     const like = await Like.findById(likeId);
     // Check if the post has already been liked
-    if (
-      post.likes.every((like) => like.author._id.toString() !== req.user.id)
-    ) {
+    if (post.likes.every((like) => like.user.toString() !== req.user.id)) {
       return res.status(400).json({ msg: 'Post has not yet been liked' });
     }
 
@@ -76,58 +76,48 @@ router.put('/u/:id', auth, async (req, res) => {
   }
 });
 
-//  @route      PUT api/posts/likes/:postId/:commentId
+//  @route      PUT api/posts/likes/:postId/comments/:commentId
 //  @desc       Like a comment
 //  @access     Private
 
-router.put('/:id/:commentId', auth, async (req, res) => {
+router.put('/:postId/comments/:commentId', auth, async (req, res) => {
   try {
     // console.log('req params', req.params);
-    const post = await Post.findById(req.params.id);
+    const comment = await Comment.findById(req.params.commentId);
     // Check if the post does exist
-    if (!post) {
-      return res.status(400).json({ msg: 'Post does not exist' });
+    if (!comment) {
+      return res.status(400).json({ msg: 'Comment does not exist' });
     }
 
-    // console.log('### user', req.user);
-    const user = await User.findById(req.user.id).select('-password');
-    const { comments } = post;
-
-    const comment = comments.find(
-      (comment) => comment._id.toString() === req.params.commentId
-    );
     // check if the comment is already liked
+    console.log('### :) ', comment);
     if (comment.likes.some((like) => like.user.toString() === req.user.id)) {
       return res.status(400).json({ msg: 'Comment already liked' });
     }
 
-    comments.forEach((comment) => {
-      if (comment._id.toString() === req.params.commentId) {
-        comment.likes.unshift({
-          user: req.user.id,
-          thumbnail: user.thumbnail,
-          username: user.username,
-        });
-      }
+    const like = new Like({
+      user: req.user.id,
+      author: req.user.id,
     });
 
-    post.comments = [...comments];
-    console.log('### final ', post.comments);
-    await post.save();
-    res.json(post.comments);
+    comment.likes.unshift(like);
+
+    like.save();
+    await comment.save();
+    res.json(comment);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
   }
 });
 
-//  @route      DELETE api/posts/likes/:id/:commentId
+//  @route      DELETE api/posts/likes/:id/comments/:commentId
 //  @desc       Unlike a Comment
 //  @access     Private
 
-router.put('/u/:id/:commentId', auth, async (req, res) => {
+router.put('/u/:postId/comments/:commentId', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.postId);
 
     // console.log('### user', req.user);
     const { comments } = post;

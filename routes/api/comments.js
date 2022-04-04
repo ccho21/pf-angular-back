@@ -7,28 +7,26 @@ const Post = require('../../models/Post');
 const Comment = require('../../models/Comment');
 const User = require('../../models/User');
 
-//  @route      POST api/posts/comment/:id
+//  @route      POST api/posts/comments/:id
 //  @desc       Create a comment to a post
 //  @access     Private
 router.put(
-  '/:id',
+  '/p/:postId',
   [auth, [check('content', 'Content is required').not().isEmpty()]],
   async (req, res) => {
-    console.log('### update req comment', req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     try {
-      const user = await User.findById(req.user.id).select('-password');
-      const post = await Post.findById(req.params.id);
-      // console.log(user);
+      const post = await Post.findById(req.params.postId);
       const comment = new Comment({
         content: req.body.content,
         author: req.user.id,
+        parentId: req.params.postId,
       });
-
+      console.log('### post', post);
       await comment.save();
 
       post.comments.unshift(comment);
@@ -41,18 +39,19 @@ router.put(
   }
 );
 
-//  @route      DELTE api/posts/comments/:id/:comment_id
+//  @route      DELTE api/posts/comments/p/:postId/comments/:commentId
 //  @desc       Delete comment
 //  @access     Private
 
-router.delete('/:id/:comment_id', auth, async (req, res) => {
+router.delete('/p/:postId/comments/:commentId', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    // Pull out post
+    const post = await Post.findById(req.params.postId);
 
     // Pull out comment
-    const comment = post.comments.find(
-      (comment) => comment.id === req.params.comment_id
-    );
+    const comment = await Comment.findById(req.params.commentId);
+
+    console.log('### comment', comment);
 
     // Make sure comment exists
     if (!comment) {
@@ -60,16 +59,35 @@ router.delete('/:id/:comment_id', auth, async (req, res) => {
     }
 
     // Check user
-    if (comment.user.toString() !== req.user.id) {
+    if (comment.author._id.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'User not authorized' });
     }
+
+    console.log('### post likes', post.likes);
+
     // Get removeIndex
     const removeIndex = post.likes
-      .map((comment) => comment.user.toString())
+      .map((comment) => comment.user)
       .indexOf(req.user.id);
-
     post.comments.splice(removeIndex, 1);
+    console.log('### post comments', post.comments);
 
+
+    // Remove all sub commentss
+    if (comment.comments.length) {
+      const subComments = find({ parentId: req.params.postId }).select('_id');
+      await Comment.deleteMany({ _id: subComments });
+    }
+    // Remove All likes
+    if (comment.likes.length) {
+      const likes = find({ parentId: req.params.commentId }).select('_id');
+      await Comment.deleteMany({ _id: likes });
+    }
+
+    // Finally remove comment
+    comment.remove();
+
+    // update the comments in Post
     await post.save();
 
     res.json(post.comments);
@@ -83,7 +101,7 @@ router.delete('/:id/:comment_id', auth, async (req, res) => {
 //  @desc       Comment on a post
 //  @access     Private
 router.put(
-  '/:id/:commentId',
+  '/p/:postId/comments/:commentId',
   [auth, [check('content', 'Content is required').not().isEmpty()]],
   async (req, res) => {
     console.log('### update req comment', req.body);

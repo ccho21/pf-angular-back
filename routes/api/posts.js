@@ -86,7 +86,7 @@ router.put(
     auth,
     [
       check('content', 'Content is required').not().isEmpty(),
-      check('images', 'Images are required').not().isEmpty(),
+      // check('images', 'Images are required').not().isEmpty(),
     ],
   ],
   async (req, res) => {
@@ -95,7 +95,6 @@ router.put(
       return res.status(400).json({ errors: errors.array() });
     }
     try {
-      const user = await User.findById(req.user.id).select('-password');
       const post = await Post.findById(req.params.id);
       post.content = req.body.content;
       // post.images.unshift(...req.body.images);
@@ -135,12 +134,26 @@ router.get('/user/:id', auth, async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
-    if (post.user.toString() !== req.user.id) {
+    if (post.author._id.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'User not authorized' });
     }
+
+    // Remove all comments related to this post
+    if (post.comments.length) {
+      const comments = await Comment.find({ parentId: req.params.id });
+      const commentIds = comments.map((comment) => comment._id);
+      await Comment.deleteMany({ _id: commentIds });
+    }
+    // Remove All likes related to this post
+    if (post.likes.length) {
+      const likes = await Like.find({ parentId: req.params.id });
+      const likeIds = likes.map((like) => like._id);
+      await Like.deleteMany({ _id: likeIds });
+    }
+
     await post.remove();
 
-    res.json({ msg: 'Post removed' });
+    res.json({ msg: 'Post and its removed' });
   } catch (err) {
     console.log(err.message);
     if (err.kind === 'ObjectId') {

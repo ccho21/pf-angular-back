@@ -7,8 +7,12 @@ const CommentSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: 'user',
   },
+  parentId: {
+    type: String,
+    required: true,
+  },
   comments: [{ type: Schema.Types.ObjectId, ref: 'comment' }],
-  // likes: [{ type: Schema.Types.ObjectId, ref: 'like' }],
+  likes: [{ type: Schema.Types.ObjectId, ref: 'like' }],
   content: {
     type: String,
     required: true,
@@ -26,9 +30,11 @@ const CommentSchema = new mongoose.Schema({
   },
 });
 
-CommentSchema.pre('findOne', Populate('author'))
-  .pre('find', Populate('author'))
-  .pre('findOne', Populate('comments'))
-  .pre('find', Populate('comments'));
+CommentSchema.pre('findOne', Populate('author'), '[Author] FindOne')
+  .pre('find', Populate('author'), '[Author] Find')
+  .pre('findOne', Populate('comments'), '[Comments] FindOne')
+  .pre('find', Populate('comments'), '[Comments] Find')
+  .pre('findOne', Populate('likes'), '[Likes] FindOne')
+  .pre('find', Populate('likes'), '[Likes] Find');
 
 module.exports = mongoose.model('comment', CommentSchema);
