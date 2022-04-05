@@ -113,8 +113,8 @@ router.post(
 
     try {
       const post = await Post.findById(req.params.postId);
-      const comments = await Comment.find({ parentId: req.params.postId });
-
+      //   const comments = await Comment.find({ parentId: req.params.postId });
+      const { comments } = post;
       const comment = await Comment.find({ parentId: req.params.commentId });
       console.log('### comment!!! ', comment);
 

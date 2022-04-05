@@ -170,7 +170,6 @@ router.delete('/:id', auth, async (req, res) => {
 
 router.get('/user/:id', auth, async (req, res) => {
   try {
-    console.log('WORKING?', req.params.id);
     const posts = await Post.find({ author: req.params.id });
     if (!posts) return res.status(404).json({ msg: 'Post not found' });
     res.json(posts);
