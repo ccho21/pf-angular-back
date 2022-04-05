@@ -8,29 +8,32 @@ const Post = require('../../models/Post');
 const Like = require('../../models/Like');
 const Comment = require('../../models/Comment');
 
-//  @route      PUT api/posts/likes/:id
+//  @route      PUT api/likes/p/:id
 //  @desc       Like a post
 //  @access     Private
 
-router.put('/:postId', auth, async (req, res) => {
+router.post('/p/:postId', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
-    // console.log('### LIKE IN LIKE FUNCTION', post);
 
     // Check if the post has already been liked
     if (post.likes.some((like) => like.user.toString() === req.user.id)) {
       return res.status(400).json({ msg: 'Post already liked' });
     }
 
+    // create Like Object
     const like = new Like({
       user: req.user.id,
       author: req.user.id,
       parentId: req.params.postId,
     });
 
-    await like.save();
+    // store the like object and populate the author
+    const query = await like.save();
+    const populatedLike = await query.populate('author').execPopulate();
 
-    post.likes.unshift(like);
+    // insert the like to post like array
+    post.likes.unshift(populatedLike);
     await post.save(like);
 
     res.json(post.likes);
@@ -40,11 +43,11 @@ router.put('/:postId', auth, async (req, res) => {
   }
 });
 
-//  @route      DELETE api/posts/likes/:id
+//  @route      DELETE api/likes/p/:id
 //  @desc       Unlike a post
 //  @access     Private
 
-router.put('/u/:postId', auth, async (req, res) => {
+router.delete('/p/:postId', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
 
@@ -76,11 +79,11 @@ router.put('/u/:postId', auth, async (req, res) => {
   }
 });
 
-//  @route      PUT api/posts/likes/:postId/comments/:commentId
+//  @route      PUT api/likes/p/:postId/c/:commentId
 //  @desc       Like a comment
 //  @access     Private
 
-router.put('/:postId/comments/:commentId', auth, async (req, res) => {
+router.post('/p/:postId/c/:commentId', auth, async (req, res) => {
   try {
     // console.log('req params', req.params);
     const comment = await Comment.findById(req.params.commentId);
@@ -100,7 +103,9 @@ router.put('/:postId/comments/:commentId', auth, async (req, res) => {
       author: req.user.id,
     });
 
-    comment.likes.unshift(like);
+    const query = await like.save();
+    const populatedLike = await query.populate('author').execPopulate();
+    comment.likes.unshift(populatedLike);
 
     like.save();
     await comment.save();
@@ -111,11 +116,11 @@ router.put('/:postId/comments/:commentId', auth, async (req, res) => {
   }
 });
 
-//  @route      DELETE api/posts/likes/:id/comments/:commentId
+//  @route      DELETE api/likes/p/:postId/c/:commentId
 //  @desc       Unlike a Comment
 //  @access     Private
 
-router.put('/u/:postId/comments/:commentId', auth, async (req, res) => {
+router.delete('/p/:postId/c/:commentId', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
 
