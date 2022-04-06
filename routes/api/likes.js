@@ -8,6 +8,7 @@ const Post = require('../../models/Post');
 const Like = require('../../models/Like');
 const Comment = require('../../models/Comment');
 const { fchownSync } = require('fs');
+const { emitWarning } = require('process');
 
 //  @route      PUT api/likes/p/:id
 //  @desc       Like a post
@@ -80,6 +81,7 @@ router.delete('/p/:postId', auth, async (req, res) => {
   }
 });
 
+// TODO: REFACTOR LATER
 //  @route      PUT api/likes/p/:postId/c/:commentId
 //  @desc       Like a comment
 //  @access     Private
@@ -89,7 +91,6 @@ router.post('/p/:postId/c/:commentId', auth, async (req, res) => {
     // console.log('req params', req.params);
     const post = await Post.findById(req.params.postId);
     const { comments } = post;
-    // const comments = await Comment.find({ postId: req.params.postId });
     const comment = await Comment.findById(req.params.commentId);
 
     // check if the comment is already liked
@@ -98,28 +99,44 @@ router.post('/p/:postId/c/:commentId', auth, async (req, res) => {
     }
 
     // create Like Object
+    const parentId = comment.depth === 1 ? req.params.postId : comment.parentId;
     const like = new Like({
       user: req.user.id,
       author: req.user.id,
-      parentId: req.params.postId,
+      parentId,
     });
 
     // save the sub like and populate the fields for author
     const query = await like.save();
     const populatedLike = await query.populate('author').execPopulate();
+    let updatedComments = [];
+    comment.likes.push(populatedLike);
+    comment.save();
 
-    // loop the comments to find the right position for the sub like
-    // Also, Save the parent comment to keep the sub like
-    comments.forEach(async (comment) => {
-      if (comment._id.toString() === req.params.commentId) {
-        console.log('found the sub comment');
-        comment.likes.push(populatedLike);
-        await comment.save();
+    if (comment.depth === 1) {
+      // loop the comments to find the right position for the sub like
+      // Also, Save the parent comment to keep the sub like
+      for (let i = 0; i < comments.length; i++) {
+        if (post.comments[i]._id.toString() === req.params.commentId) {
+          post.comments[i] = comment;
+        }
       }
-    });
+    } else if (comment.depth === 2) {
+      for (let i = 0; i < post.comments.length; i++) {
+        if (post.comments[i]._id.toString() === comment.parentId) {
+          for (let j = 0; j < comments[i].comments.length; j++) {
+            if (
+              post.comments[i].comments[j]._id.toString() ===
+              req.params.commentId
+            ) {
+              post.comments[i].comments[j] = comment;
+            }
+          }
+        }
+      }
+    }
 
     // save the comments to keep it on the post model
-    post.comments = [...comments];
     await post.save();
 
     // return comments for rxjs update
@@ -130,6 +147,7 @@ router.post('/p/:postId/c/:commentId', auth, async (req, res) => {
   }
 });
 
+// TODO: REFACTOR LATER
 //  @route      DELETE api/likes/p/:postId/c/:commentId
 //  @desc       Unlike a Comment
 //  @access     Private
@@ -137,14 +155,9 @@ router.post('/p/:postId/c/:commentId', auth, async (req, res) => {
 router.delete('/p/:postId/c/:commentId', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
+    const comment = await Comment.findById(req.params.commentId);
 
-    // console.log('### user', req.user);
     const { comments } = post;
-
-    // get comment from comments array
-    const comment = comments.find(
-      (comment) => comment._id.toString() === req.params.commentId.toString()
-    );
 
     // Check if the post has already been liked
     if (comment.likes.every((like) => like.user.toString() !== req.user.id)) {
@@ -156,17 +169,40 @@ router.delete('/p/:postId/c/:commentId', auth, async (req, res) => {
       .map((like) => like.user.toString())
       .indexOf(req.user.id);
 
-    // remove the like from comments array and save the comment
-    comments.forEach(async (comment, i) => {
-      if (comment._id.toString() === req.params.commentId) {
-        comment.likes.splice(removeIndex, 1);
-        await comment.save();
-      }
-    });
+    await comment.likes[removeIndex].remove();
+    comment.likes.splice(removeIndex, 1);
+    await comment.save();
 
+    if (comment.depth === 1) {
+      for (let i = 0; i < comments.length; i++) {
+        if (post.comments[i]._id.toString() === req.params.commentId) {
+          post.comments[i] = comment;
+        }
+      }
+    }
+
+    if (comment.depth === 2) {
+      for (let i = 0; i < post.comments.length; i++) {
+        if (post.comments[i]._id.toString() === comment.parentId) {
+          for (let j = 0; j < comments[i].comments.length; j++) {
+            if (
+              post.comments[i].comments[j]._id.toString() ===
+              req.params.commentId
+            ) {
+              // console.log('!!!!!!!', comments[i].comments[j]._id);
+              // console.log('!!!!!!!', req.params.commentId);
+              post.comments[i].comments[j] = comment;
+            }
+          }
+        }
+      }
+    }
+    // remove the like from comments array and save the comment
     // save the post
-    post.comments = [...comments];
-    await post.save();
+
+    // post.comments = [...updatedComments];
+
+    // await post.save();
 
     res.json(post.comments);
   } catch (err) {

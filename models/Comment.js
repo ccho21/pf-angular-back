@@ -7,14 +7,18 @@ const CommentSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: 'user',
   },
-  parentId: {
-    type: String,
-    required: true,
-  },
   comments: [{ type: Schema.Types.ObjectId, ref: 'comment' }],
   likes: [{ type: Schema.Types.ObjectId, ref: 'like' }],
   content: {
     type: String,
+    required: true,
+  },
+  parentId: {
+    type: String,
+    required: true,
+  },
+  depth: {
+    type: Number,
     required: true,
   },
   replyTo: {

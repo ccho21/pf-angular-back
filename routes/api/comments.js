@@ -25,12 +25,13 @@ router.post(
         content: req.body.content,
         author: req.user.id,
         parentId: req.params.postId,
+        depth: 1,
       });
 
       const query = await comment.save();
       const populatedComment = await query.populate('author').execPopulate();
 
-      post.comments.push(populatedComment);
+      post.comments.unshift(populatedComment);
       await post.save();
       res.json(post.comments);
       //   res.json(populatedComment);
@@ -123,6 +124,7 @@ router.post(
         parentId: req.params.commentId,
         replyTo: req.body.replyTo,
         content: req.body.content,
+        depth: 2,
       });
 
       // save the sub comment and populate the fields for author
@@ -138,8 +140,6 @@ router.post(
           await comment.save();
         }
       });
-
-      console.log('### [SUB COMMENT] ###', comments);
 
       post.comments = [...comments];
       await post.save();
