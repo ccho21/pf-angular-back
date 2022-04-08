@@ -14,6 +14,7 @@ const Comment = require('../../models/Comment');
 
 router.get('/', auth, async (req, res) => {
   try {
+    
     const posts = await Post.find().sort({ date: -1 });
     // console.log('### posts', posts);
     res.json(posts);
