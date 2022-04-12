@@ -7,8 +7,6 @@ const User = require('../../models/User');
 const Post = require('../../models/Post');
 const Like = require('../../models/Like');
 const Comment = require('../../models/Comment');
-const { fchownSync } = require('fs');
-const { emitWarning } = require('process');
 
 //  @route      PUT api/likes/p/:id
 //  @desc       Like a post
