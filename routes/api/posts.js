@@ -50,7 +50,7 @@ router.post(
     auth,
     [
       check('content', 'Content is required').not().isEmpty(),
-      // check('images', 'Images are required').not().isEmpty(),
+      check('images', 'Images are required').not().isEmpty(),
     ],
   ],
   async (req, res) => {
@@ -67,7 +67,7 @@ router.post(
       });
       const query = await post.save();
       const populatedPost = await query.populate('author').execPopulate();
-
+      console.log('POSTS ###', populatedPost);
       res.json(populatedPost);
     } catch (err) {
       console.error(err.message);
@@ -85,7 +85,7 @@ router.put(
     auth,
     [
       check('content', 'Content is required').not().isEmpty(),
-      // check('images', 'Images are required').not().isEmpty(),
+      check('images', 'Images are required').not().isEmpty(),
     ],
   ],
   async (req, res) => {
@@ -101,7 +101,7 @@ router.put(
 
       const query = await post.save();
       const populatedPost = await query.populate('author').execPopulate();
-
+      console.log("### populated, ", populatedPost)
       res.json(populatedPost);
     } catch (err) {
       console.error(err.message);
