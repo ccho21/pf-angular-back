@@ -51,7 +51,7 @@ router.post(
     auth,
     [
       check('content', 'Content is required').not().isEmpty(),
-      // check('images', 'Images are required').not().isEmpty(),
+      check('images', 'Images are required').not().isEmpty(),
     ],
   ],
   async (req, res) => {
@@ -59,18 +59,17 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    console.log('REQ BODY', req.body);
-    console.log('REQ USER', req.user);
     try {
       const user = await User.findById(req.user.id).select('-password');
-      console.log(user);
-      const newPost = new Post({
+      const post = new Post({
         content: req.body.content,
         images: req.body.images,
         author: user._id,
       });
-      const post = await newPost.save();
-      res.json(post);
+      const query = await post.save();
+      const populatedPost = await query.populate('author').execPopulate();
+      console.log('POSTS ###', populatedPost);
+      res.json(populatedPost);
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
@@ -87,7 +86,7 @@ router.put(
     auth,
     [
       check('content', 'Content is required').not().isEmpty(),
-      // check('images', 'Images are required').not().isEmpty(),
+      check('images', 'Images are required').not().isEmpty(),
     ],
   ],
   async (req, res) => {
@@ -101,8 +100,10 @@ router.put(
       // post.images.unshift(...req.body.images);
       post.images = req.body.images;
 
-      const updatedPost = await post.save();
-      res.json(updatedPost);
+      const query = await post.save();
+      const populatedPost = await query.populate('author').execPopulate();
+      console.log("### populated, ", populatedPost)
+      res.json(populatedPost);
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
@@ -170,7 +171,6 @@ router.delete('/:id', auth, async (req, res) => {
 
 router.get('/user/:id', auth, async (req, res) => {
   try {
-    console.log('WORKING?', req.params.id);
     const posts = await Post.find({ author: req.params.id });
     if (!posts) return res.status(404).json({ msg: 'Post not found' });
     res.json(posts);
