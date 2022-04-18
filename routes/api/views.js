@@ -12,7 +12,6 @@ const User = require('../../models/User');
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    console.log('came in?');
     const post = await Post.findById(req.params.id);
     // Check if the post has already been liked
     if (post.views.some((view) => view.toString() === req.user.id)) {
